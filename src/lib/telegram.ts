@@ -35,11 +35,13 @@ async function callTelegramAPI(
   token: string,
   method: string,
   // biome-ignore lint/suspicious/noExplicitAny: <any response from Telegram>
+  body?: Record<string, any>,
 ): Promise<any> {
   const url = `${TELEGRAM_API_BASE}${token}/${method}`
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
   })
 
   const data = await response.json()
