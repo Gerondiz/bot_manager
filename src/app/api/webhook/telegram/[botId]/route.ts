@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { pool } from '@/lib/db'
 
 // POST /api/webhook/telegram/:botId
 // Handler для входящих webhook от Telegram
@@ -16,26 +16,33 @@ export async function POST(
     // TODO: Verify against stored secret
 
     // Найти бота
-    const bot = await db.bot.findUnique({
-      where: { id: botId },
-    })
+    const { rows: botRows } = await pool.query(
+      `SELECT id, enabled, "webhookUrl" FROM bots WHERE id = $1`,
+      [botId]
+    )
 
-    if (!bot || !bot.enabled) {
+    if (botRows.length === 0) {
+      return NextResponse.json({ error: 'Bot not found or disabled' }, { status: 404 })
+    }
+
+    const bot = botRows[0]
+    if (!bot.enabled) {
       return NextResponse.json({ error: 'Bot not found or disabled' }, { status: 404 })
     }
 
     // Сохранить сообщение
     if (body.message) {
-      await db.message.create({
-        data: {
+      await pool.query(
+        `INSERT INTO messages ("botId", "chatId", "userId", username, direction, text, timestamp)
+         VALUES ($1, $2, $3, $4, 'INCOMING', $5, NOW())`,
+        [
           botId,
-          chatId: String(body.message.chat.id),
-          userId: String(body.message.from.id),
-          username: body.message.from.username || null,
-          direction: 'INCOMING',
-          text: body.message.text || '',
-        },
-      })
+          String(body.message.chat.id),
+          String(body.message.from.id),
+          body.message.from.username || null,
+          body.message.text || '',
+        ]
+      )
     }
 
     // Отправить событие в qwen_aaf (если настроен webhook)

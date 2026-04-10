@@ -1,4 +1,4 @@
-import { db } from '@/lib/db'
+import { pool } from '@/lib/db'
 
 /**
  * Middleware для логирования ошибок приложения.
@@ -17,18 +17,21 @@ export function errorLogger() {
 
     // Ставим в очередь (не блокируем основной поток)
     logQueue.push(
-      db.botLog
-        .create({
-          data: {
-            botId: null,  // Системная ошибка
-            level: 'ERROR',
+      pool
+        .query(
+          `INSERT INTO bot_logs ("botId", level, message, context, timestamp)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [
+            null, // Системная ошибка
+            'ERROR',
             message,
-            context: JSON.stringify({
+            JSON.stringify({
               source: 'console.error',
               timestamp: timestamp.toISOString(),
             }),
-          },
-        })
+            timestamp,
+          ]
+        )
         .catch((dbError) => {
           // Если БД недоступна — логируем в консоль
           originalError.apply(console, ['[DB Log Error]', dbError])

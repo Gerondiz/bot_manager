@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { pool } from '@/lib/db'
 
 // POST /api/bots/:id/toggle
 export async function POST(
@@ -8,17 +8,23 @@ export async function POST(
 ) {
   try {
     const { id } = await params
-    const bot = await db.bot.findUnique({ where: { id } })
-    if (!bot) {
+
+    // Сначала получаем текущее состояние
+    const { rows } = await pool.query(
+      `SELECT enabled FROM bots WHERE id = $1`,
+      [id]
+    )
+
+    if (rows.length === 0) {
       return NextResponse.json({ error: 'Bot not found' }, { status: 404 })
     }
 
-    const updated = await db.bot.update({
-      where: { id },
-      data: { enabled: !bot.enabled },
-    })
+    const updated = await pool.query(
+      `UPDATE bots SET enabled = NOT enabled, "updatedAt" = NOW() WHERE id = $1 RETURNING *`,
+      [id]
+    )
 
-    return NextResponse.json({ bot: updated })
+    return NextResponse.json({ bot: updated.rows[0] })
   } catch (error) {
     console.error('Error toggling bot:', error)
     return NextResponse.json({ error: 'Failed to toggle bot' }, { status: 500 })
