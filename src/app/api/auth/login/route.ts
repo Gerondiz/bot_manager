@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken'
 
 const ADMIN_LOGIN = process.env.ADMIN_LOGIN || 'admin'
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'changeme'
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production'
+const JWT_SECRET = process.env.JWT_SECRET
 
 export async function POST(request: Request) {
   try {
@@ -15,6 +15,14 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: 'Login and password required' },
         { status: 400 }
+      )
+    }
+
+    if (!JWT_SECRET) {
+      console.error('JWT_SECRET is not set in environment variables!')
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
       )
     }
 
@@ -36,7 +44,7 @@ export async function POST(request: Request) {
     const response = NextResponse.json({ success: true })
     response.cookies.set('auth_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       sameSite: 'lax',
       maxAge: 60 * 60 * 24, // 24 hours
       path: '/',

@@ -34,7 +34,12 @@ export function middleware(request: NextRequest) {
   }
 
   try {
-    jwt.verify(token, JWT_SECRET || 'dev-fallback-secret')
+    if (!JWT_SECRET) {
+      console.error('JWT_SECRET not set!')
+      const loginUrl = new URL('/login', request.url)
+      return NextResponse.redirect(loginUrl)
+    }
+    jwt.verify(token, JWT_SECRET)
     return NextResponse.next()
   } catch {
     const loginUrl = new URL('/login', request.url)
