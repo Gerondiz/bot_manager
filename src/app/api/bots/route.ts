@@ -53,7 +53,7 @@ export async function POST(request: Request) {
         token,
         webhookUrl,
         tgAllowGroups: tgAllowGroups || false,
-        tgAllowedGroups: JSON.stringify(tgAllowedGroups || []),
+        tgAllowedGroups: Array.isArray(tgAllowedGroups) ? tgAllowedGroups : [],
       },
     })
 
