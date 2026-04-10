@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db'
+import { db } from '@/lib/db'
 
 /**
  * Middleware для логирования ошибок приложения.
@@ -17,7 +17,7 @@ export function errorLogger() {
 
     // Ставим в очередь (не блокируем основной поток)
     logQueue.push(
-      prisma.botLog
+      db.botLog
         .create({
           data: {
             botId: null,  // Системная ошибка

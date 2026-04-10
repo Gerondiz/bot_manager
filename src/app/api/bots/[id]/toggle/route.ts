@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { db } from '@/lib/db'
 
 // POST /api/bots/:id/toggle
 export async function POST(
@@ -8,12 +8,12 @@ export async function POST(
 ) {
   try {
     const { id } = await params
-    const bot = await prisma.bot.findUnique({ where: { id } })
+    const bot = await db.bot.findUnique({ where: { id } })
     if (!bot) {
       return NextResponse.json({ error: 'Bot not found' }, { status: 404 })
     }
 
-    const updated = await prisma.bot.update({
+    const updated = await db.bot.update({
       where: { id },
       data: { enabled: !bot.enabled },
     })

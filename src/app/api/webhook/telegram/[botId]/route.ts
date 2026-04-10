@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { db } from '@/lib/db'
 
 // POST /api/webhook/telegram/:botId
 // Handler для входящих webhook от Telegram
@@ -16,7 +16,7 @@ export async function POST(
     // TODO: Verify against stored secret
 
     // Найти бота
-    const bot = await prisma.bot.findUnique({
+    const bot = await db.bot.findUnique({
       where: { id: botId },
     })
 
@@ -26,7 +26,7 @@ export async function POST(
 
     // Сохранить сообщение
     if (body.message) {
-      await prisma.message.create({
+      await db.message.create({
         data: {
           botId,
           chatId: String(body.message.chat.id),

@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { db } from '@/lib/db'
 
 export async function GET() {
   try {
-    const bots = await prisma.bot.findMany({
+    const bots = await db.bot.findMany({
       select: {
         id: true,
         name: true,
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     }
 
     // TODO: Encrypt token before saving
-    const bot = await prisma.bot.create({
+    const bot = await db.bot.create({
       data: {
         name,
         type,

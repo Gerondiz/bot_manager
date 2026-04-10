@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { db } from '@/lib/db'
 
 // GET /api/logs/error — только ошибки и критические ошибки
 export async function GET(request: Request) {
@@ -7,7 +7,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '100')
 
-    const logs = await prisma.botLog.findMany({
+    const logs = await db.botLog.findMany({
       where: {
         level: {
           in: ['ERROR', 'CRITICAL'],

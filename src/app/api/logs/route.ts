@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { db } from '@/lib/db'
 
 export async function GET(request: Request) {
   try {
@@ -13,7 +13,7 @@ export async function GET(request: Request) {
       where.level = level
     }
 
-    const logs = await prisma.botLog.findMany({
+    const logs = await db.botLog.findMany({
       where,
       orderBy: { timestamp: 'desc' },
       take: Math.min(limit, 500),

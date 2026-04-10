@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { db } from '@/lib/db'
 
 // GET /api/bots/:id
 export async function GET(
@@ -8,7 +8,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const bot = await prisma.bot.findUnique({
+    const bot = await db.bot.findUnique({
       where: { id },
       select: {
         id: true,
@@ -45,7 +45,7 @@ export async function PATCH(
     const body = await request.json()
     const { name, webhookUrl, tgWebhookUrl, tgAllowGroups, enabled } = body
 
-    const bot = await prisma.bot.update({
+    const bot = await db.bot.update({
       where: { id },
       data: {
         ...(name !== undefined && { name }),
@@ -70,7 +70,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    await prisma.bot.delete({ where: { id } })
+    await db.bot.delete({ where: { id } })
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting bot:', error)
