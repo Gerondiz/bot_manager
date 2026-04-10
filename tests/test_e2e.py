@@ -58,6 +58,7 @@ def api_tests():
         r = client.post("/api/auth/login", json={"login": ADMIN_LOGIN, "password": ADMIN_PASSWORD})
         if r.status_code == 200:
             log("POST /api/auth/login — success", "PASS")
+            # httpx stores cookies as dict
             cookies = {c.name: c.value for c in r.cookies}
             cookie_header = "; ".join(f"{k}={v}" for k, v in cookies.items())
         else:
