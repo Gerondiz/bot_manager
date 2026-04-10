@@ -2,7 +2,6 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { errorLogger } from '@/lib/error-logger'
 
-// Инициализируем логирование ошибок
 if (typeof window === 'undefined') {
   errorLogger()
 }
