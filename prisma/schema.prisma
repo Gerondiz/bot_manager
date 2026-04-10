@@ -1,0 +1,99 @@
+// Prisma schema для bot_manager
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Bot {
+  id            String   @id @default(uuid())
+  name          String
+  type          BotType
+  token         String   @db.Text
+  tokenEncrypted Boolean  @default(true)
+  enabled       Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Настройки Telegram
+  tgWebhookUrl     String?
+  tgAllowGroups    Boolean  @default(false)
+  tgAllowedGroups  String[] @default([])
+
+  // Настройки Alice
+  aliceSkillId     String?
+  aliceOauthToken  String?  @db.Text
+
+  // Интеграции
+  webhookUrl       String?
+  webhookSecret    String?
+
+  messages         Message[]
+  logs             BotLog[]
+
+  @@map("bots")
+}
+
+model Message {
+  id        String    @id @default(uuid())
+  botId     String
+  chatId    String
+  userId    String
+  username  String?
+  direction Direction
+  text      String    @db.Text
+  timestamp DateTime  @default(now())
+
+  bot       Bot       @relation(fields: [botId], references: [id])
+
+  @@map("messages")
+  @@index([botId, timestamp])
+}
+
+model BotLog {
+  id        String   @id @default(uuid())
+  botId     String?  // Nullable для системных логов
+  level     LogLevel
+  message   String   @db.Text
+  context   Json?
+  timestamp DateTime @default(now())
+
+  bot       Bot?     @relation(fields: [botId], references: [id])
+
+  @@map("bot_logs")
+  @@index([botId, timestamp])
+}
+
+model ApiKey {
+  id          String   @id @default(uuid())
+  name        String
+  keyHash     String   @unique
+  permissions String[] @default([])
+  createdAt   DateTime @default(now())
+  lastUsedAt  DateTime?
+
+  @@map("api_keys")
+}
+
+enum BotType {
+  TELEGRAM
+  ALICE
+}
+
+enum Direction {
+  INCOMING
+  OUTGOING
+}
+
+enum LogLevel {
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
+}
+
+

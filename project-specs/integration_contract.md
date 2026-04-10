@@ -1,0 +1,1 @@
+/mnt/prog_disk/Progs/qwen_aaf/project-specs/integration_contract.md

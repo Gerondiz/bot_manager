@@ -1,0 +1,39 @@
+{
+  "name": "bot-manager",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:studio": "prisma studio",
+    "setup": "node scripts/generate-secrets.js"
+  },
+  "dependencies": {
+    "next": "^15.2",
+    "react": "^19.0",
+    "react-dom": "^19.0",
+    "@prisma/client": "^5.22",
+    "telegraf": "^4.16",
+    "zod": "^3.23",
+    "bcrypt": "^5.1",
+    "jsonwebtoken": "^9.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10",
+    "@types/react": "^19.0",
+    "@types/react-dom": "^19.0",
+    "@types/bcrypt": "^5.0",
+    "typescript": "^5.7",
+    "prisma": "^5.22",
+    "tailwindcss": "^3.4",
+    "postcss": "^8.4",
+    "autoprefixer": "^10.4",
+    "eslint": "^9.0",
+    "eslint-config-next": "^15.2"
+  }
+}
