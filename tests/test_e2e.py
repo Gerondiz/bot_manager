@@ -58,9 +58,8 @@ def api_tests():
         r = client.post("/api/auth/login", json={"login": ADMIN_LOGIN, "password": ADMIN_PASSWORD})
         if r.status_code == 200:
             log("POST /api/auth/login — success", "PASS")
-            # httpx stores cookies as dict
-            cookies = {c.name: c.value for c in r.cookies}
-            cookie_header = "; ".join(f"{k}={v}" for k, v in cookies.items())
+            # httpx: r.cookies is a Cookies object, iterate to get name/value
+            cookie_header = "; ".join(f"{c.name}={c.value}" for c in r.cookies.jar)
         else:
             log("POST /api/auth/login", "FAIL", f"HTTP {r.status_code}: {r.text[:200]}")
             return
@@ -243,7 +242,7 @@ def ui_tests():
         try:
             WebDriverWait(d, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "h1")))
             h1 = d.find_element(By.CSS_SELECTOR, "h1").text
-            log("Bots page — renders", "PASS" if "Бот" in h1 else "FAIL", h1)
+            log("Bots page — renders", "PASS" if "бот" in h1.lower() else "FAIL", h1)
         except Exception as e:
             log("Bots page", "FAIL", str(e))
 
