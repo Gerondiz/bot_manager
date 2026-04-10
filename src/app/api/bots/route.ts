@@ -26,8 +26,8 @@ export async function POST(request: Request) {
     }
 
     const { rows } = await pool.query(
-      `INSERT INTO bots (name, type, token, "webhookUrl", "tgAllowGroups")
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      `INSERT INTO bots (id, name, type, token, "webhookUrl", "tgAllowGroups", "createdAt", "updatedAt")
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, NOW(), NOW()) RETURNING *`,
       [name, type, token, webhookUrl || null, tgAllowGroups || false]
     )
 
