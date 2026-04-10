@@ -4,7 +4,7 @@ import { pool } from '@/lib/db'
 export async function GET() {
   try {
     const { rows } = await pool.query(`
-      SELECT id, name, type, enabled, "createdAt",
+      SELECT id, name, type, enabled, status, "lastChecked", "lastError", "createdAt",
         (SELECT COUNT(*) FROM messages WHERE "botId" = b.id) as "messageCount"
       FROM bots b
       ORDER BY "createdAt" DESC

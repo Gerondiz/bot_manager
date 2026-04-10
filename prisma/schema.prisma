@@ -16,6 +16,9 @@ model Bot {
   token         String   @db.Text
   tokenEncrypted Boolean  @default(true)
   enabled       Boolean  @default(true)
+  status        String   @default("unknown")
+  lastChecked   DateTime?
+  lastError     String?  @db.Text
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

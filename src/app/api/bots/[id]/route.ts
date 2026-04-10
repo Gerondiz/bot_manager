@@ -9,7 +9,7 @@ export async function GET(
   try {
     const { id } = await params
     const { rows } = await pool.query(
-      `SELECT id, name, type, enabled, "tgWebhookUrl", "tgAllowGroups", "webhookUrl", "createdAt", "updatedAt",
+      `SELECT id, name, type, enabled, status, "lastChecked", "lastError", "tgWebhookUrl", "tgAllowGroups", "webhookUrl", "createdAt", "updatedAt",
         (SELECT COUNT(*) FROM messages WHERE "botId" = b.id) as "messageCount"
        FROM bots b WHERE b.id = $1`,
       [id]
