@@ -6,7 +6,7 @@ import { prisma } from '@/lib/db'
  */
 export function errorLogger() {
   const originalError = console.error
-  const logQueue: Array<Promise<void>> = []
+  const logQueue: Array<Promise<unknown>> = []
 
   console.error = async function (...args: unknown[]) {
     const message = args.map(String).join(' ').slice(0, 1000)

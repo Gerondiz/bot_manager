@@ -29,7 +29,7 @@ export async function GET(request: Request) {
       logs: logs.map((log) => ({
         id: log.id,
         botId: log.botId,
-        botName: log.bot.name,
+        botName: log.bot?.name ?? 'system',
         level: log.level,
         message: log.message,
         context: log.context,
