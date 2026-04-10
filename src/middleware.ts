@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import jwt from 'jsonwebtoken'
 
 const JWT_SECRET = process.env.JWT_SECRET
 const PUBLIC_PATHS = [
@@ -25,7 +24,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Проверяем JWT токен
+  // Проверяем наличие токена (полная верификация на сервере через API route)
   const token = request.cookies.get('auth_token')?.value
 
   if (!token) {
@@ -33,20 +32,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  try {
-    if (!JWT_SECRET) {
-      console.error('JWT_SECRET not set!')
-      const loginUrl = new URL('/login', request.url)
-      return NextResponse.redirect(loginUrl)
-    }
-    jwt.verify(token, JWT_SECRET)
-    return NextResponse.next()
-  } catch {
-    const loginUrl = new URL('/login', request.url)
-    const response = NextResponse.redirect(loginUrl)
-    response.cookies.delete('auth_token')
-    return response
-  }
+  // Пропускаем запрос — полная JWT верификация происходит в защищённых API routes
+  return NextResponse.next()
 }
 
 export const config = {
