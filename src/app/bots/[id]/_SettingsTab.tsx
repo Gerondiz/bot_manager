@@ -156,13 +156,15 @@ export default function SettingsTab({ bot, onBotUpdate }: { bot: Bot; onBotUpdat
   }
 
   const handleDelete = async () => {
-    if (!confirm(`Удалить бота "${bot.name}"?`)) return
+    if (!confirm(`Удалить бота "${bot.name}"?\nЭто действие нельзя отменить.`)) return
     try {
       const res = await fetch(`/api/bots/${bot.id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Failed')
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed')
+      alert('Бот удалён')
       router.push('/bots')
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed')
+      alert(err instanceof Error ? err.message : 'Failed to delete bot')
     }
   }
 

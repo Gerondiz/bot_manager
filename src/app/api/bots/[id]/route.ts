@@ -105,14 +105,14 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    const { rowCount } = await pool.query(
-      `DELETE FROM bots WHERE id = $1`,
-      [id]
-    )
+    const { pool } = await import('@/lib/db')
 
-    if (rowCount === 0) {
-      return NextResponse.json({ error: 'Bot not found' }, { status: 404 })
-    }
+    // Удаляем зависимые записи (messages, bot_chats, health_checks, bot_logs)
+    await pool.query(`DELETE FROM messages WHERE "botId" = $1`, [id])
+    await pool.query(`DELETE FROM "bot_chats" WHERE "botId" = $1`, [id])
+    await pool.query(`DELETE FROM "health_checks" WHERE "botId" = $1`, [id])
+    await pool.query(`DELETE FROM "bot_logs" WHERE "botId" = $1`, [id])
+    await pool.query(`DELETE FROM bots WHERE id = $1`, [id])
 
     return NextResponse.json({ success: true })
   } catch (error) {
