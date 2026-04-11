@@ -16,7 +16,7 @@
 
 const BASE_URL = process.env.TEST_URL || 'http://localhost:3000'
 const ADMIN_LOGIN = process.env.ADMIN_LOGIN || 'admin'
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '559123'
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'a127oc'
 
 let passed = 0, failed = 0
 const errors = []
