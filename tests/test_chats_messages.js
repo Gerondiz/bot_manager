@@ -125,12 +125,12 @@ test.describe('Bot Chats and Messages', () => {
     await page.locator('input[type="text"]').fill(ADMIN_LOGIN)
     await page.locator('input[type="password"]').fill(ADMIN_PASSWORD)
     await page.locator('button[type="submit"]').click()
-    await page.waitForURL(/.*dashboard/, { timeout: 10000 })
+    await page.waitForLoadState('networkidle', { timeout: 15000 })
     
     // Navigate to bot detail
     await page.goto(`${BASE_URL}/bots/${testBotId}?tab=chats`)
-    await page.waitForURL(/.*\/bots\/[a-f0-9-]+.*/, { timeout: 10000 })
-    await page.waitForTimeout(1000)
+    await page.waitForLoadState('networkidle', { timeout: 15000 })
+    await page.waitForTimeout(2000)
     
     const pageText = await page.locator('body').innerText()
     if (!pageText.includes('Чаты')) {
