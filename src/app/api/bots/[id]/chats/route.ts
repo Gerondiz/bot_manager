@@ -36,9 +36,31 @@ export async function GET(
       typeFilter ? [id, typeFilter] : [id]
     )
 
+    let chats = result.rows
+    let total = parseInt(countResult.rows[0]?.count || '0')
+
+    // Fallback: если bot_chats пуста, берём уникальные chatId из messages
+    if (total === 0) {
+      const msgResult = await pool.query(
+        `SELECT "botId", "chatId", MAX("username") as "username", MAX("firstName") as "firstName",
+            MAX(timestamp) as "lastSeen", MIN(timestamp) as "firstSeen",
+            'private' as type
+         FROM messages WHERE "botId" = $1
+         GROUP BY "botId", "chatId"
+         ORDER BY MAX(timestamp) DESC LIMIT $2 OFFSET $3`,
+        [id, limit, offset]
+      )
+      chats = msgResult.rows
+      const msgCount = await pool.query(
+        `SELECT COUNT(DISTINCT "chatId") FROM messages WHERE "botId" = $1`,
+        [id]
+      )
+      total = parseInt(msgCount.rows[0]?.count || '0')
+    }
+
     return NextResponse.json({
-      chats: result.rows,
-      total: parseInt(countResult.rows[0]?.count || '0'),
+      chats,
+      total,
     })
   } catch (error) {
     console.error('Get chats error:', error)
