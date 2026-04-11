@@ -42,6 +42,13 @@ export async function POST(
       [status, lastError, id]
     )
 
+    // Сохраняем в историю проверок
+    await pool.query(
+      `INSERT INTO "health_checks" ("botId", healthy, status, error, "checkedAt")
+       VALUES ($1, $2, $3, $4, NOW())`,
+      [id, healthResult.healthy, status, lastError]
+    )
+
     return NextResponse.json({
       health: healthResult,
       webhook: webhookResult,
