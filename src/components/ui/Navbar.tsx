@@ -126,30 +126,29 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile menu — overlay */}
+        {/* Mobile menu — dropdown */}
         {menuOpen && (
           <>
             {/* Backdrop */}
             <div
-              className="md:hidden fixed inset-0 bg-black/20 z-40"
+              className="md:hidden fixed inset-0 z-40"
               onClick={() => setMenuOpen(false)}
             />
-            {/* Dropdown */}
-            <div className="md:hidden fixed top-14 left-0 right-0 bg-white border-b border-gray-200 shadow-lg z-50 py-3 space-y-1">
+            {/* Dropdown card */}
+            <div className="md:hidden fixed top-[60px] right-3 w-56 bg-white rounded-xl shadow-xl border border-gray-200 z-50 py-2 animate-in">
               {allNav.map(item => (
                 <NavLink key={item.href} item={item} pathname={pathname} mobile />
               ))}
-              <div className="pt-2 border-t border-gray-100 mt-2">
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-                  </svg>
-                  Выйти
-                </button>
-              </div>
+              <div className="mx-2 my-1 border-t border-gray-100" />
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 w-full px-3 py-2 mx-1 rounded-lg text-sm font-medium text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                </svg>
+                Выйти
+              </button>
             </div>
           </>
         )}
