@@ -93,23 +93,23 @@
 | `getChatMemberCount` | Количество участников | 🟡 Желательно |
 | `getChatMember` | Статус участника | ⚪ Опционально |
 | `leaveChat` | Покинуть чат | ⚪ Опционально |
-| `banChatMember` | Забанить участника | 🔴 Полезно |
+| `banChatMember` | Забанить участника | 🔴 Опционально |
 | `unbanChatMember` | Разбанить | ⚪ Опционально |
 | `restrictChatMember` | Ограничить права | ⚪ Опционально |
 | `promoteChatMember` | Повысить до админа | ⚪ Опционально |
 | `setChatAdministratorCustomTitle` | Кастомный титул админа | ⚪ Опционально |
-| `exportChatInviteLink` | Получить ссылку-приглашение | 🔴 Полезно |
+| `exportChatInviteLink` | Получить ссылку-приглашение | 🔴 Опционально |
 | `createChatInviteLink` | Создать одноразовую ссылку | ⚪ Опционально |
 | `editChatInviteLink` | Редактировать ссылку | ⚪ Опционально |
 | `revokeChatInviteLink` | Отозвать ссылку | ⚪ Опционально |
-| `approveChatJoinRequest` | Одобрить заявку | 🔴 Полезно |
-| `decline ChatJoinRequest` | Отклонить заявку | 🔴 Полезно |
+| `approveChatJoinRequest` | Одобрить заявку | 🔴 Опционально |
+| `decline ChatJoinRequest` | Отклонить заявку | 🔴 Опционально |
 | `setChatTitle` | Изменить название группы | ⚪ Опционально |
 | `setChatDescription` | Изменить описание группы | ⚪ Опционально |
 | `setChatPhoto` | Изменить фото группы | ⚪ Опционально |
 | `deleteChatPhoto` | Удалить фото группы | ⚪ Опционально |
-| `pinChatMessage` | Закрепить сообщение | 🔴 Полезно |
-| `unpinChatMessage` | Открепить сообщение | 🔴 Полезно |
+| `pinChatMessage` | Закрепить сообщение | 🔴 Опционально |
+| `unpinChatMessage` | Открепить сообщение | 🔴 Опционально |
 | `unpinAllChatMessages` | Открепить все | ⚪ Опционально |
 
 ### 2.4 Управление webhook
@@ -380,8 +380,6 @@ CREATE TABLE bot_chats (
 ### 6.2 Очередь задач (для автопроверки)
 
 Vercel serverless не поддерживает cron. Варианты:
-- Vercel Cron Jobs (бесплатно, до 1 раза в день)
-- Внешний cron сервис (Cron-job.org)
 - qwen_aaf как orchestrator с internal scheduler
 
 ### 6.3 Шифрование токенов

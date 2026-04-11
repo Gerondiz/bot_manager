@@ -37,24 +37,66 @@ model Bot {
 
   messages         Message[]
   logs             BotLog[]
+  chats            BotChat[]
+  healthChecks     HealthCheck[]
 
   @@map("bots")
 }
 
 model Message {
-  id        String    @id @default(uuid())
-  botId     String
-  chatId    String
-  userId    String
-  username  String?
-  direction Direction
-  text      String    @db.Text
-  timestamp DateTime  @default(now())
+  id            String    @id @default(uuid())
+  botId         String
+  chatId        String
+  userId        String
+  username      String?
+  firstName     String?
+  direction     Direction
+  text          String?   @db.Text
+  photoFileId   String?
+  documentFileId String?
+  messageId     Int?      // Telegram message ID
+  replyToMsgId  Int?
+  timestamp     DateTime  @default(now())
 
-  bot       Bot       @relation(fields: [botId], references: [id])
+  bot           Bot       @relation(fields: [botId], references: [id])
 
   @@map("messages")
   @@index([botId, timestamp])
+  @@index([botId, chatId, timestamp])
+}
+
+model BotChat {
+  id          String   @id @default(uuid())
+  botId       String
+  chatId      String   // Telegram chat ID (negative for groups)
+  title       String?
+  type        String   // private, group, supergroup, channel
+  username    String?
+  firstName   String?
+  lastName    String?
+  memberCount Int?
+  firstSeen   DateTime @default(now())
+  lastSeen    DateTime @default(now())
+
+  bot         Bot      @relation(fields: [botId], references: [id], onDelete: Cascade)
+
+  @@unique([botId, chatId])
+  @@index([botId, lastSeen])
+  @@map("bot_chats")
+}
+
+model HealthCheck {
+  id        String   @id @default(uuid())
+  botId     String
+  healthy   Boolean
+  status    String   // online, error
+  error     String?  @db.Text
+  checkedAt DateTime @default(now())
+
+  bot       Bot      @relation(fields: [botId], references: [id], onDelete: Cascade)
+
+  @@index([botId, checkedAt])
+  @@map("health_checks")
 }
 
 model BotLog {
@@ -65,7 +107,7 @@ model BotLog {
   context   Json?
   timestamp DateTime @default(now())
 
-  bot       Bot?     @relation(fields: [botId], references: [id])
+  bot       Bot?     @relation(fields: [botId], references: [id], onDelete: SetNull)
 
   @@map("bot_logs")
   @@index([botId, timestamp])
@@ -98,5 +140,3 @@ enum LogLevel {
   ERROR
   CRITICAL
 }
-
-
