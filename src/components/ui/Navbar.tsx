@@ -126,9 +126,16 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile menu */}
+        {/* Mobile menu — overlay */}
         {menuOpen && (
-          <div className="md:hidden border-t border-gray-100 py-3 space-y-1">
+          <>
+            {/* Backdrop */}
+            <div
+              className="md:hidden fixed inset-0 bg-black/20 z-40"
+              onClick={() => setMenuOpen(false)}
+            />
+            {/* Dropdown */}
+            <div className="md:hidden fixed top-14 left-0 right-0 bg-white border-b border-gray-200 shadow-lg z-50 py-3 space-y-1">
             {allNav.map(item => (
               <NavLink key={item.href} item={item} pathname={pathname} mobile />
             ))}
@@ -143,7 +150,7 @@ export default function Navbar() {
                 Выйти
               </button>
             </div>
-          </div>
+          </>
         )}
       </div>
     </nav>
