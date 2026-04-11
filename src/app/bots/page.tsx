@@ -215,7 +215,10 @@ export default function BotsPage() {
                       Настроить
                     </Link>
                     <button
-                      onClick={() => toggleBot(bot.id, bot.enabled)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        toggleBot(bot.id, bot.enabled)
+                      }}
                       className="btn btn-secondary p-2"
                       title={bot.enabled ? 'Отключить' : 'Включить'}
                     >
@@ -230,7 +233,10 @@ export default function BotsPage() {
                       )}
                     </button>
                     <button
-                      onClick={() => deleteBot(bot.id, bot.name)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        deleteBot(bot.id, bot.name)
+                      }}
                       className="btn btn-danger p-2"
                       title="Удалить"
                     >
