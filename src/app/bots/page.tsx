@@ -166,6 +166,17 @@ export default function BotsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5">
+                      {/* Online/offline status */}
+                      {bot.status && bot.status !== 'unknown' && (
+                        <span className="relative flex h-2.5 w-2.5">
+                          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                            bot.status === 'online' ? 'bg-emerald-400' : 'bg-red-400'
+                          }`} />
+                          <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                            bot.status === 'online' ? 'bg-emerald-500' : 'bg-red-500'
+                          }`} />
+                        </span>
+                      )}
                       {bot.enabled ? (
                         <span className="badge badge-success">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
