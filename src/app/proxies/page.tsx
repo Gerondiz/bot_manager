@@ -20,6 +20,7 @@ export default function ProxiesPage() {
   const [lastChecked, setLastChecked] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null)
+  const [copiedField, setCopiedField] = useState<string | null>(null)
   const [filter, setFilter] = useState('')
 
   const fetchProxies = async () => {
@@ -152,7 +153,9 @@ export default function ProxiesPage() {
             </div>
 
             <div className="divide-y divide-gray-100 max-h-[600px] overflow-y-auto scrollbar-thin">
-              {filtered.map((proxy, idx) => (
+              {filtered.map((proxy, idx) => {
+                const tgLink = proxy.link.replace('https://t.me/proxy?', 'tg://proxy?')
+                return (
                 <div key={idx} className="px-4 py-3 flex items-center gap-3 hover:bg-blue-50/50 transition-colors group">
                   {/* Alive indicator */}
                   <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20 flex-shrink-0" />
@@ -160,15 +163,52 @@ export default function ProxiesPage() {
                   {/* Number */}
                   <span className="text-xs text-gray-400 w-8 flex-shrink-0">{idx + 1}</span>
 
-                  {/* Server */}
-                  <span className="flex-1 text-sm font-mono text-gray-700 truncate">{proxy.server}</span>
+                  {/* Server + Port (clickable to copy) */}
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${proxy.server}:${proxy.port}`)
+                      setCopiedField(`${idx}-server`)
+                      setTimeout(() => setCopiedField(null), 1500)
+                    }}
+                    className="flex-1 text-left flex items-center gap-2 min-w-0 group/copy"
+                    title="Нажмите чтобы скопировать"
+                  >
+                    <span className="text-sm font-mono text-gray-700 truncate">
+                      {copiedField === `${idx}-server` ? (
+                        <span className="text-emerald-600 flex items-center gap-1">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                          </svg>
+                          Скопировано
+                        </span>
+                      ) : (
+                        proxy.server
+                      )}
+                    </span>
+                  </button>
 
-                  {/* Port */}
-                  <span className="badge badge-info w-16 justify-center">{proxy.port}</span>
+                  {/* Port badge (clickable to copy) */}
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${proxy.server}:${proxy.port}`)
+                      setCopiedField(`${idx}-port`)
+                      setTimeout(() => setCopiedField(null), 1500)
+                    }}
+                    className="badge badge-info w-16 justify-center cursor-pointer hover:bg-blue-100 transition-colors"
+                    title="Нажмите чтобы скопировать"
+                  >
+                    {copiedField === `${idx}-port` ? (
+                      <svg className="w-3 h-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                      </svg>
+                    ) : (
+                      proxy.port
+                    )}
+                  </button>
 
                   {/* Actions */}
                   <div className="flex items-center gap-1">
-                    {/* Copy link */}
+                    {/* Copy https link */}
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(proxy.link)
@@ -189,11 +229,9 @@ export default function ProxiesPage() {
                       )}
                     </button>
 
-                    {/* Open in Telegram */}
+                    {/* Open in Telegram (tg:// protocol) */}
                     <a
-                      href={proxy.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href={tgLink}
                       className="btn btn-ghost p-1.5 text-sky-600 hover:text-sky-700 hover:bg-sky-50"
                       title="Открыть в Telegram"
                     >
@@ -203,7 +241,7 @@ export default function ProxiesPage() {
                     </a>
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
           </div>
         )}
