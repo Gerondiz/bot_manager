@@ -38,5 +38,6 @@ export const config = {
     '/settings/:path*',
     '/analytics/:path*',
     '/logs/:path*',
+    '/proxies/:path*',
   ],
 }
