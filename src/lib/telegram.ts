@@ -370,3 +370,52 @@ export async function getFileUrl(token: string, fileId: string): Promise<string 
     return null
   }
 }
+
+// ═══════════════════════════════════════════════════════════════
+//  Updates (getUpdates) — polling режим
+// ═══════════════════════════════════════════════════════════════
+
+export interface TelegramUpdate {
+  update_id: number
+  message?: {
+    message_id: number
+    from?: { id: number; username?: string; first_name?: string; last_name?: string }
+    chat: { id: number; type: string; title?: string; username?: string; first_name?: string; last_name?: string }
+    text?: string
+    caption?: string
+    photo?: { file_id: string; file_unique_id: string; file_size?: number }[]
+    document?: { file_id: string; file_unique_id: string; file_name?: string }
+    date: number
+    reply_to_message?: { message_id: number }
+  }
+  my_chat_member?: {
+    chat: { id: number; type: string; title?: string; username?: string }
+    from: { id: number; username?: string }
+    old_chat_member: { status: string }
+    new_chat_member: { status: string }
+    date: number
+  }
+}
+
+export async function getUpdates(token: string, options?: { offset?: number; limit?: number; timeout?: number }): Promise<TelegramUpdate[]> {
+  try {
+    const params = new URLSearchParams()
+    if (options?.offset !== undefined) params.set('offset', String(options.offset))
+    if (options?.limit) params.set('limit', String(options.limit))
+    if (options?.timeout) params.set('timeout', String(options.timeout))
+
+    const url = `${TELEGRAM_API_BASE}${token}/getUpdates?${params}`
+    const response = await fetch(url)
+    const data = await response.json()
+
+    if (!data.ok) {
+      console.error('getUpdates error:', data.description)
+      return []
+    }
+
+    return data.result || []
+  } catch (error) {
+    console.error('getUpdates fetch error:', error)
+    return []
+  }
+}
