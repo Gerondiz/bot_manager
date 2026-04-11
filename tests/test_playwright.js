@@ -201,6 +201,6 @@ test.describe('UI', () => {
     // 5. Logout button exists
     const logoutBtn = page.locator('button:has-text("Выйти")')
     await expect(logoutBtn).toBeVisible({ timeout: 3000 })
-    // Logout flow tested separately (requires server restart for new /api/auth/logout endpoint)
+    // Logout flow tested separately
   })
 })

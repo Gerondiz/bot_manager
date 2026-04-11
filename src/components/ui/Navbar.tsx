@@ -101,11 +101,11 @@ export default function Navbar() {
             <button
               onClick={handleLogout}
               className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-              title="Выйти"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
               </svg>
+              <span>Выйти</span>
             </button>
 
             {/* Hamburger — mobile only */}
@@ -136,19 +136,20 @@ export default function Navbar() {
             />
             {/* Dropdown */}
             <div className="md:hidden fixed top-14 left-0 right-0 bg-white border-b border-gray-200 shadow-lg z-50 py-3 space-y-1">
-            {allNav.map(item => (
-              <NavLink key={item.href} item={item} pathname={pathname} mobile />
-            ))}
-            <div className="pt-2 border-t border-gray-100 mt-2">
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-                </svg>
-                Выйти
-              </button>
+              {allNav.map(item => (
+                <NavLink key={item.href} item={item} pathname={pathname} mobile />
+              ))}
+              <div className="pt-2 border-t border-gray-100 mt-2">
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                  </svg>
+                  Выйти
+                </button>
+              </div>
             </div>
           </>
         )}
