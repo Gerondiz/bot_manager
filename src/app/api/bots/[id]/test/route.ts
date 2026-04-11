@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { randomUUID } from 'crypto'
 import { pool } from '@/lib/db'
 import { sendTestMessage } from '@/lib/telegram'
 
@@ -52,9 +53,9 @@ export async function POST(
 
     // Сохраняем сообщение в БД
     await pool.query(
-      `INSERT INTO messages ("botId", "chatId", "userId", username, direction, text, timestamp)
-       VALUES ($1, $2, $3, $4, 'OUTGOING', $5, NOW())`,
-      [id, String(chatId), 'test', 'bot_manager', testText]
+      `INSERT INTO messages (id, "botId", "chatId", "userId", username, direction, text, timestamp)
+       VALUES ($1, $2, $3, $4, $5, 'OUTGOING', $6, NOW())`,
+      [randomUUID(), id, String(chatId), 'test', 'bot_manager', testText]
     )
 
     return NextResponse.json({
