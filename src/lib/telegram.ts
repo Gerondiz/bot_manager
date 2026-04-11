@@ -96,13 +96,12 @@ export async function sendTestMessage(
   token: string,
   chatId: string,
   text: string,
-  // biome-ignore lint/suspicious/noExplicitAny: <parseMode can vary>
+  // biome-ignore lint/suspicious/noExplicitAny: <any response from Telegram>
 ): Promise<{ success: boolean; messageId?: number; error?: string }> {
   try {
     const data = await callTelegramAPI(token, 'sendMessage', {
       chat_id: chatId,
       text,
-      parse_mode: 'Markdown',
     })
     return {
       success: true,
