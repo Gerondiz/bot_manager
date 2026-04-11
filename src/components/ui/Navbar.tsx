@@ -39,8 +39,10 @@ export default function Navbar() {
           </div>
           <div className="flex items-center">
             <button
-              onClick={() => {
-                document.cookie = 'auth_token=; path=/; max-age=0'
+              onClick={async () => {
+                try {
+                  await fetch('/api/auth/logout', { method: 'POST' })
+                } catch {}
                 window.location.href = '/login'
               }}
               className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900"

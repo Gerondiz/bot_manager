@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Navbar from '@/components/ui/Navbar'
 
 interface LogEntry {
   id: string
@@ -47,8 +48,10 @@ export default function LogsPage() {
   }, [filterLevel])
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-6">
+    <div>
+      <Navbar />
+      <div className="p-8">
+        <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Логи системы</h1>
         <div className="flex gap-2">
           <select
@@ -117,6 +120,7 @@ export default function LogsPage() {
           </table>
         </div>
       )}
+      </div>
     </div>
   )
 }
