@@ -120,15 +120,19 @@ test.describe('Bot Chats and Messages', () => {
 
   test('7) UI: navigate to bot detail and see tabs', async ({ page }) => {
     if (!testBotId) { test.skip(); return }
+    // Login first
+    await page.goto(`${BASE_URL}/login`)
+    await page.locator('input[type="text"]').fill(ADMIN_LOGIN)
+    await page.locator('input[type="password"]').fill(ADMIN_PASSWORD)
+    await page.locator('button[type="submit"]').click()
+    await page.waitForURL(/.*dashboard/, { timeout: 10000 })
+    
+    // Navigate to bot detail
     await page.goto(`${BASE_URL}/bots/${testBotId}?tab=chats`)
     await page.waitForURL(/.*\/bots\/[a-f0-9-]+.*/, { timeout: 10000 })
-
-    // Wait for content to render
     await page.waitForTimeout(1000)
     
     const pageText = await page.locator('body').innerText()
-    
-    // If we don't see tabs, maybe page errored — screenshot for debug
     if (!pageText.includes('Чаты')) {
       console.log('Page text:', pageText.substring(0, 500))
     }
