@@ -1,8 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Navbar from '@/components/ui/Navbar'
+import ChatsTab from './_ChatsTab'
+import MessagesTab from './_MessagesTab'
+import CommandsTab from './_CommandsTab'
+import DiagnosticsTab from './_DiagnosticsTab'
+import SettingsTab from './_SettingsTab'
 
 interface Bot {
   id: string
@@ -15,368 +20,170 @@ interface Bot {
   webhookUrl: string | null
   tgWebhookUrl: string | null
   tgAllowGroups: boolean
+  token: string
 }
 
-interface HealthResult {
-  healthy: boolean
-  botInfo?: {
-    id: number
-    first_name: string
-    username: string
-    can_join_groups: boolean
-    can_read_all_group_messages: boolean
-  }
-  error?: string
-  checkedAt: string
-}
+const tabs = [
+  { id: 'chats', label: 'Чаты', icon: (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+    </svg>
+  )},
+  { id: 'messages', label: 'Сообщения', icon: (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+    </svg>
+  )},
+  { id: 'commands', label: 'Команды', icon: (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
+    </svg>
+  )},
+  { id: 'diagnostics', label: 'Диагностика', icon: (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M11.412 15.655L9.75 21.75l3.745-4.012M9.257 13.5H3.75l3.562-6.187m5.303 4.937l-1.25-4.5m-4.746-2.25L6.75 2.25l3.745 4.937M16.5 12.75l3.75 6-1.5-5.25m-4.5 0h6M15 3a3 3 0 100 6 3 3 0 000-6z" />
+    </svg>
+  )},
+  { id: 'settings', label: 'Настройки', icon: (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  )},
+]
 
-interface WebhookResult {
-  url?: string
-  has_custom_certificate?: boolean
-  pending_update_count?: number
-  last_error_date?: number
-  last_error_message?: string
-  max_connections?: number
-  error?: string
-}
-
-export default function BotEditPage({ params }: { params: Promise<{ id: string }> }) {
+export default function BotPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [bot, setBot] = useState<Bot | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [name, setName] = useState('')
-  const [webhookUrl, setWebhookUrl] = useState('')
-  const [tgWebhookUrl, setTgWebhookUrl] = useState('')
-  const [tgAllowGroups, setTgAllowGroups] = useState(false)
-  const [saving, setSaving] = useState(false)
-
-  // Health check state
-  const [checkingHealth, setCheckingHealth] = useState(false)
-  const [healthResult, setHealthResult] = useState<HealthResult | null>(null)
-  const [webhookResult, setWebhookResult] = useState<WebhookResult | null>(null)
-
-  // Test message state
-  const [chatId, setChatId] = useState('')
-  const [testText, setTestText] = useState('')
-  const [sendingTest, setSendingTest] = useState(false)
-  const [testResult, setTestResult] = useState<{ success: boolean; message: string; error?: string } | null>(null)
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'chats')
 
   useEffect(() => {
     params.then(({ id }) => {
       fetch(`/api/bots/${id}`, { credentials: 'include' })
-        .then((res) => {
+        .then(res => {
           if (!res.ok) throw new Error('Bot not found')
           return res.json()
         })
         .then(({ bot }) => {
           setBot(bot)
-          setName(bot.name)
-          setWebhookUrl(bot.webhookUrl || '')
-          setTgWebhookUrl(bot.tgWebhookUrl || '')
-          setTgAllowGroups(bot.tgAllowGroups)
         })
-        .catch((err) => setError(err.message))
+        .catch(err => setError(err.message))
         .finally(() => setLoading(false))
     })
   }, [params])
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSaving(true)
-    setError('')
-
-    try {
-      const { id } = await params
-      const res = await fetch(`/api/bots/${id}`, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          webhookUrl: webhookUrl || null,
-          tgWebhookUrl: tgWebhookUrl || null,
-          tgAllowGroups,
-        }),
-      })
-      if (!res.ok) throw new Error('Failed to save')
-      router.push('/bots')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error')
-    } finally {
-      setSaving(false)
-    }
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId)
+    params.then(({ id }) => {
+      router.push(`/bots/${id}?tab=${tabId}`, { scroll: false })
+    })
   }
 
-  const handleHealthCheck = async () => {
-    setCheckingHealth(true)
-    setHealthResult(null)
-    setWebhookResult(null)
-    setTestResult(null)
+  if (loading) return (
+    <div>
+      <Navbar />
+      <div className="max-w-6xl mx-auto px-4 py-8 flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full" />
+      </div>
+    </div>
+  )
 
-    try {
-      const { id } = await params
-      const res = await fetch(`/api/bots/${id}/health`, {
-        method: 'POST',
-        credentials: 'include',
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Health check failed')
-
-      setHealthResult(data.health)
-      setWebhookResult(data.webhook)
-      // Refresh bot info
-      setBot(prev => prev ? { ...prev, status: data.bot.status, lastChecked: data.bot.lastChecked, lastError: data.bot.lastError } : prev)
-    } catch (err) {
-      setHealthResult({ healthy: false, error: err instanceof Error ? err.message : 'Unknown error', checkedAt: new Date().toISOString() })
-    } finally {
-      setCheckingHealth(false)
-    }
-  }
-
-  const handleTestMessage = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!chatId.trim()) return
-
-    setSendingTest(true)
-    setTestResult(null)
-
-    try {
-      const { id } = await params
-      const res = await fetch(`/api/bots/${id}/test`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chatId: chatId.trim(), text: testText || undefined }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || data.message || 'Failed to send')
-
-      setTestResult({ success: true, message: data.message || 'Message sent', error: undefined })
-      setChatId('')
-      setTestText('')
-    } catch (err) {
-      setTestResult({ success: false, message: '', error: err instanceof Error ? err.message : 'Unknown error' })
-    } finally {
-      setSendingTest(false)
-    }
-  }
-
-  if (loading) return <div className="p-8">Загрузка...</div>
-  if (error) return <div className="p-8 text-red-600">{error}</div>
-  if (!bot) return <div className="p-8">Бот не найден</div>
+  if (error || !bot) return (
+    <div>
+      <Navbar />
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="p-8 text-center">
+          <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+          </svg>
+          <h3 className="text-lg font-semibold text-gray-700 mb-1">{error || 'Бот не найден'}</h3>
+          <button onClick={() => router.push('/bots')} className="text-blue-600 hover:underline text-sm mt-2">
+            ← Назад к списку
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 
   return (
     <div>
       <Navbar />
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Настройки: {bot.name}</h1>
-
-        {error && (
-          <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-md">{error}</div>
-        )}
-
-        {/* ─── Health Check & Test Tools ─── */}
-        {bot.type === 'TELEGRAM' && (
-          <div className="bg-white rounded-lg shadow p-6 mb-6 space-y-6">
-            <h2 className="text-xl font-semibold">🔧 Диагностика</h2>
-
-            {/* Health Check */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-medium">Проверка здоровья</h3>
-                <button
-                  onClick={handleHealthCheck}
-                  disabled={checkingHealth}
-                  className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 disabled:opacity-50"
-                >
-                  {checkingHealth ? 'Проверка...' : 'Проверить'}
-                </button>
+      <div className="max-w-6xl mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-2">
+            <button onClick={() => router.push('/bots')} className="text-gray-400 hover:text-gray-600">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+            </button>
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                bot.type === 'TELEGRAM' ? 'bg-sky-50 text-sky-600' : 'bg-purple-50 text-purple-600'
+              }`}>
+                {bot.type === 'TELEGRAM' ? (
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+                  </svg>
+                )}
               </div>
-
-              {healthResult && (
-                <div className={`p-3 rounded-md text-sm ${healthResult.healthy ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-                  <div className="font-medium mb-1">
-                    {healthResult.healthy ? '✅ Бот работает' : '❌ Ошибка'}
-                  </div>
-                  {healthResult.botInfo && (
-                    <div className="text-gray-600 space-y-1 mt-2">
-                      <div><span className="font-medium">@{healthResult.botInfo.username}</span> ({healthResult.botInfo.first_name})</div>
-                      <div>ID: {healthResult.botInfo.id}</div>
-                      <div>Группы: {healthResult.botInfo.can_join_groups ? 'Да' : 'Нет'}</div>
-                    </div>
-                  )}
-                  {healthResult.error && (
-                    <div className="text-red-700 mt-2 font-mono text-xs">{healthResult.error}</div>
-                  )}
-                  <div className="text-gray-400 text-xs mt-2">
-                    {new Date(healthResult.checkedAt).toLocaleString('ru-RU')}
-                  </div>
-                </div>
-              )}
-
-              {webhookResult && (
-                <div className="mt-2 p-3 bg-gray-50 rounded-md text-sm">
-                  <div className="font-medium mb-1">Webhook</div>
-                  {webhookResult.url ? (
-                    <div className="text-gray-600 break-all font-mono text-xs">{webhookResult.url}</div>
-                  ) : (
-                    <div className="text-gray-400">Не установлен</div>
-                  )}
-                  {webhookResult.pending_update_count !== undefined && webhookResult.pending_update_count > 0 && (
-                    <div className="text-amber-600 mt-1">⏳ Ожидает: {webhookResult.pending_update_count}</div>
-                  )}
-                  {webhookResult.last_error_message && (
-                    <div className="text-red-600 mt-1 text-xs">⚠️ {webhookResult.last_error_message}</div>
-                  )}
-                  {webhookResult.error && (
-                    <div className="text-red-600 mt-1 text-xs font-mono">{webhookResult.error}</div>
-                  )}
-                </div>
-              )}
-
-              {/* Last check info from DB */}
-              {bot.status && bot.status !== 'unknown' && !healthResult && (
-                <div className="text-xs text-gray-400 mt-1">
-                  Последний статус: <span className={`font-medium ${bot.status === 'online' ? 'text-green-600' : 'text-red-600'}`}>{bot.status === 'online' ? 'online' : bot.status}</span>
-                  {bot.lastChecked && <> · {new Date(bot.lastChecked).toLocaleString('ru-RU')}</>}
-                  {bot.lastError && <div className="text-red-500 mt-1 font-mono">{bot.lastError}</div>}
-                </div>
-              )}
-            </div>
-
-            {/* Test Message */}
-            <div className="border-t pt-4">
-              <h3 className="font-medium mb-3">Тестовое сообщение</h3>
-              {testResult && (
-                <div className={`mb-3 p-3 rounded-md text-sm ${testResult.success ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'}`}>
-                  {testResult.success ? `✅ ${testResult.message}` : `❌ ${testResult.error}`}
-                </div>
-              )}
-              <form onSubmit={handleTestMessage} className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Chat ID</label>
-                  <input
-                    type="text"
-                    value={chatId}
-                    onChange={(e) => setChatId(e.target.value)}
-                    placeholder="Ваш числовой ID (найдите через @userinfobot)"
-                    className="w-full px-3 py-2 border rounded-md text-sm"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Текст (необязательно)</label>
-                  <textarea
-                    value={testText}
-                    onChange={(e) => setTestText(e.target.value)}
-                    placeholder="Оставьте пустым для стандартного теста"
-                    rows={2}
-                    className="w-full px-3 py-2 border rounded-md text-sm"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={sendingTest || !chatId.trim()}
-                  className="px-4 py-2 bg-emerald-600 text-white text-sm rounded-md hover:bg-emerald-700 disabled:opacity-50"
-                >
-                  {sendingTest ? 'Отправка...' : 'Отправить тест'}
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* ─── Bot Settings Form ─── */}
-        <form onSubmit={handleSave} className="bg-white rounded-lg shadow p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Название</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Тип</label>
-            <p className="text-gray-600">{bot.type}</p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Webhook URL (AAF)</label>
-            <input
-              type="url"
-              value={webhookUrl}
-              onChange={(e) => setWebhookUrl(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md"
-              placeholder="https://your-aaf.example.com/webhook/v1/event"
-            />
-          </div>
-
-          {bot.type === 'TELEGRAM' && (
-            <>
               <div>
-                <label className="block text-sm font-medium mb-1">Telegram Webhook URL</label>
-                <input
-                  type="url"
-                  value={tgWebhookUrl}
-                  onChange={(e) => setTgWebhookUrl(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md"
-                />
+                <h1 className="text-xl font-bold text-gray-900">{bot.name}</h1>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <span>{bot.type}</span>
+                  <span>·</span>
+                  {bot.enabled ? (
+                    <span className="text-emerald-600 font-medium">Активен</span>
+                  ) : (
+                    <span className="text-gray-400">Отключён</span>
+                  )}
+                  {bot.status && bot.status !== 'unknown' && (
+                    <>
+                      <span>·</span>
+                      <span className={`font-medium ${bot.status === 'online' ? 'text-emerald-600' : 'text-red-600'}`}>
+                        {bot.status === 'online' ? 'Online' : 'Error'}
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="tgGroups"
-                  checked={tgAllowGroups}
-                  onChange={(e) => setTgAllowGroups(e.target.checked)}
-                />
-                <label htmlFor="tgGroups" className="text-sm">
-                  Разрешить группы
-                </label>
-              </div>
-            </>
-          )}
+            </div>
+          </div>
+        </div>
 
-          <div className="flex items-center gap-3 pt-2">
-            <span className="text-sm">Статус:</span>
-            <span
-              className={`px-2 py-1 rounded text-xs font-medium ${
-                bot.enabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-              }`}
-            >
-              {bot.enabled ? 'Активен' : 'Отключён'}
-            </span>
-            {bot.status && bot.status !== 'unknown' && (
-              <span
-                className={`px-2 py-1 rounded text-xs font-medium ${
-                  bot.status === 'online' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+        {/* Tabs */}
+        <div className="border-b border-gray-200 mb-6 overflow-x-auto">
+          <nav className="flex gap-1 -mb-px">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => handleTabChange(tab.id)}
+                className={`inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                  activeTab === tab.id
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                {bot.status === 'online' ? '🟢 Online' : '🔴 Error'}
-              </span>
-            )}
-          </div>
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        </div>
 
-          <div className="flex gap-3 pt-4">
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-            >
-              {saving ? 'Сохранение...' : 'Сохранить'}
-            </button>
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="px-6 py-2 border rounded-md hover:bg-gray-50"
-            >
-              Отмена
-            </button>
-          </div>
-        </form>
+        {/* Tab content */}
+        {activeTab === 'chats' && <ChatsTab botId={bot.id} />}
+        {activeTab === 'messages' && <MessagesTab botId={bot.id} />}
+        {activeTab === 'commands' && <CommandsTab botId={bot.id} token={bot.token} />}
+        {activeTab === 'diagnostics' && <DiagnosticsTab bot={bot} />}
+        {activeTab === 'settings' && <SettingsTab bot={bot} onBotUpdate={(b) => setBot(b)} />}
       </div>
     </div>
   )

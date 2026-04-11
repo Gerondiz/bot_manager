@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Navbar from '@/components/ui/Navbar'
 
 interface Bot {
@@ -16,6 +17,7 @@ interface Bot {
 }
 
 export default function BotsPage() {
+  const router = useRouter()
   const [bots, setBots] = useState<Bot[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -140,7 +142,7 @@ export default function BotsPage() {
           /* Bots grid */
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {sorted.map((bot) => (
-              <div key={bot.id} className="card card-hover overflow-hidden group">
+              <div key={bot.id} className="card card-hover overflow-hidden group cursor-pointer" onClick={() => router.push(`/bots/${bot.id}?tab=chats`)}>
                 {/* Colored stripe */}
                 <div className={`h-1 ${bot.type === 'TELEGRAM' ? 'bg-sky-500' : 'bg-purple-500'}`} />
                 <div className="p-5">
@@ -165,8 +167,7 @@ export default function BotsPage() {
                         <span className="text-xs text-gray-500">{bot.type}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      {/* Online/offline status */}
+                    <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
                       {bot.status && bot.status !== 'unknown' && (
                         <span className="relative flex h-2.5 w-2.5">
                           <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
