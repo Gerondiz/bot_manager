@@ -166,11 +166,73 @@ export default function SettingsTab({ bot, onBotUpdate }: { bot: Bot; onBotUpdat
     }
   }
 
+  // Health check in settings
+  const [checking, setChecking] = useState(false)
+  const [checkStatus, setCheckStatus] = useState<'online' | 'error' | null>(null)
+  const [checkInfo, setCheckInfo] = useState<string>('')
+
+  const handleCheckConnection = async () => {
+    setChecking(true)
+    setCheckStatus(null)
+    setCheckInfo('')
+    try {
+      const res = await fetch(`/api/bots/${bot.id}/health`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed')
+      setCheckStatus(data.health?.healthy ? 'online' : 'error')
+      if (data.health?.botInfo) {
+        setCheckInfo(`@${data.health.botInfo.username} (${data.health.botInfo.first_name})`)
+      }
+      if (data.health?.error) {
+        setCheckInfo(data.health.error)
+      }
+    } catch (err) {
+      setCheckStatus('error')
+      setCheckInfo(err instanceof Error ? err.message : 'Неизвестная ошибка')
+    } finally {
+      setChecking(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* General Settings */}
       <div className="card p-5">
-        <h3 className="font-semibold text-gray-900 mb-4">Основные настройки</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-gray-900">Основные настройки</h3>
+          <div className="flex items-center gap-2">
+            {checkStatus && (
+              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${
+                checkStatus === 'online' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${checkStatus === 'online' ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                {checkStatus === 'online' ? 'Подключён' : 'Ошибка'}
+              </span>
+            )}
+            <button
+              onClick={handleCheckConnection}
+              disabled={checking}
+              className="btn btn-secondary text-xs disabled:opacity-50"
+              title="Проверить подключение"
+            >
+              {checking ? (
+                <div className="animate-spin w-3.5 h-3.5 border-2 border-gray-600 border-t-transparent rounded-full" />
+              ) : (
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              )}
+              {checking ? 'Проверка...' : 'Проверить'}
+            </button>
+          </div>
+        </div>
+        {checkInfo && (
+          <div className={`mb-3 p-2.5 rounded-md text-xs font-mono break-all ${
+            checkStatus === 'online' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+          }`}>
+            {checkInfo}
+          </div>
+        )}
         {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">{error}</div>}
         <form onSubmit={handleSave} className="space-y-4">
           <div>
