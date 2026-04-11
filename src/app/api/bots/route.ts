@@ -1,5 +1,22 @@
 import { NextResponse } from 'next/server'
 import { pool } from '@/lib/db'
+import { setWebhook } from '@/lib/telegram'
+
+/**
+ * Получить базовый URL для webhook Telegram
+ * Приоритет: WEBHOOK_BASE_URL > VERCEL_URL > хост из запроса
+ */
+function getWebhookBaseUrl(req?: Request): string {
+  if (process.env.WEBHOOK_BASE_URL) return process.env.WEBHOOK_BASE_URL
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
+  // Fallback: пытаемся извлечь из запроса
+  const host = req?.headers?.get('host')
+  if (host) {
+    if (host.includes('localhost')) return `http://${host}`
+    return `https://${host}`
+  }
+  return ''
+}
 
 export async function GET() {
   try {
@@ -31,7 +48,33 @@ export async function POST(request: Request) {
       [name, type, token, webhookUrl || null, tgAllowGroups || false]
     )
 
-    return NextResponse.json({ bot: rows[0] }, { status: 201 })
+    const bot = rows[0]
+
+    // Автоматическая установка webhook Telegram для Telegram ботов
+    if (type === 'TELEGRAM') {
+      const webhookBase = getWebhookBaseUrl(request)
+      if (webhookBase) {
+        const tgWebhookUrl = `${webhookBase}/api/webhook/telegram/${bot.id}`
+        try {
+          const success = await setWebhook(token, tgWebhookUrl)
+          if (success) {
+            await pool.query(
+              `UPDATE bots SET "tgWebhookUrl" = $1 WHERE id = $2`,
+              [tgWebhookUrl, bot.id]
+            )
+            bot.tgWebhookUrl = tgWebhookUrl
+          } else {
+            console.warn(`[Bot ${bot.id}] Failed to set Telegram webhook: ${tgWebhookUrl}`)
+          }
+        } catch (err) {
+          console.error(`[Bot ${bot.id}] Error setting Telegram webhook:`, err)
+        }
+      } else {
+        console.warn(`[Bot ${bot.id}] WEBHOOK_BASE_URL or VERCEL_URL not set, skipping webhook setup`)
+      }
+    }
+
+    return NextResponse.json({ bot }, { status: 201 })
   } catch (error) {
     console.error('Error creating bot:', error)
     return NextResponse.json({ error: 'Failed to create bot' }, { status: 500 })
