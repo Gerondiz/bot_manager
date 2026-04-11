@@ -3,7 +3,7 @@ const { defineConfig } = require('@playwright/test')
 
 module.exports = defineConfig({
   testDir: './tests',
-  testMatch: /test_playwright\.js/,
+  testMatch: /test_.*\.js/,
   timeout: 30000,
   fullyParallel: false,
   retries: process.env.CI ? 2 : 0,

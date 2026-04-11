@@ -16,25 +16,27 @@ export async function GET(
 
     const { pool } = await import('@/lib/db')
 
-    let query = `SELECT * FROM "bot_chats" WHERE "botId" = $1`
-    const queryParams: (string | number)[] = [id, limit, offset]
-    let paramCount = 1
-
+    // Build query params correctly
+    const chatParams: (string | number)[] = [id]
+    let chatQuery = `SELECT * FROM "bot_chats" WHERE "botId" = $1`
     if (typeFilter) {
-      paramCount++
-      query += ` AND type = $${paramCount}`
-      queryParams.push(typeFilter)
+      chatQuery += ` AND type = $2`
+      chatParams.push(typeFilter)
+      chatQuery += ` ORDER BY "lastSeen" DESC LIMIT $3 OFFSET $4`
+    } else {
+      chatQuery += ` ORDER BY "lastSeen" DESC LIMIT $2 OFFSET $3`
     }
+    chatParams.push(limit, offset)
 
-    query += ` ORDER BY "lastSeen" DESC LIMIT $${paramCount + 1} OFFSET $${paramCount + 2}`
-    queryParams.push(limit, offset)
+    const result = await pool.query(chatQuery, chatParams)
 
-    const result = await pool.query(query, queryParams)
-
-    const countResult = await pool.query(
-      `SELECT COUNT(*) FROM "bot_chats" WHERE "botId" = $1${typeFilter ? ' AND type = $2' : ''}`,
-      typeFilter ? [id, typeFilter] : [id]
-    )
+    const countParams: (string | number)[] = [id]
+    let countQuery = `SELECT COUNT(*) FROM "bot_chats" WHERE "botId" = $1`
+    if (typeFilter) {
+      countQuery += ` AND type = $2`
+      countParams.push(typeFilter)
+    }
+    const countResult = await pool.query(countQuery, countParams)
 
     let chats = result.rows
     let total = parseInt(countResult.rows[0]?.count || '0')
@@ -51,11 +53,11 @@ export async function GET(
         [id, limit, offset]
       )
       chats = msgResult.rows
-      const msgCount = await pool.query(
+      const msgCountResult = await pool.query(
         `SELECT COUNT(DISTINCT "chatId") FROM messages WHERE "botId" = $1`,
         [id]
       )
-      total = parseInt(msgCount.rows[0]?.count || '0')
+      total = parseInt(msgCountResult.rows[0]?.count || '0')
     }
 
     return NextResponse.json({
@@ -64,6 +66,7 @@ export async function GET(
     })
   } catch (error) {
     console.error('Get chats error:', error)
-    return NextResponse.json({ error: 'Failed to get chats' }, { status: 500 })
+    const msg = error instanceof Error ? error.message : 'Unknown'
+    return NextResponse.json({ error: 'Failed to get chats', details: msg }, { status: 500 })
   }
 }
