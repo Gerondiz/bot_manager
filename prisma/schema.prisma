@@ -1,4 +1,5 @@
 // Prisma schema для bot_manager
+// ВАЖНО: ID тип — TEXT (не UUID), т.к. таблицы созданы через init-db.sql
 
 generator client {
   provider = "prisma-client-js"
@@ -10,30 +11,27 @@ datasource db {
 }
 
 model Bot {
-  id            String   @id @default(uuid())
+  id            String   @id
   name          String
   type          BotType
   token         String   @db.Text
   tokenEncrypted Boolean  @default(true)
   enabled       Boolean  @default(true)
   status        String   @default("unknown")
-  lastChecked   DateTime?
-  lastError     String?  @db.Text
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  lastChecked   DateTime? @map("lastChecked")
+  lastError     String?  @db.Text @map("lastError")
+  createdAt     DateTime @default(now()) @map("createdAt")
+  updatedAt     DateTime @updatedAt @map("updatedAt")
 
-  // Настройки Telegram
-  tgWebhookUrl     String?
-  tgAllowGroups    Boolean  @default(false)
-  tgAllowedGroups  String[] @default([])
+  tgWebhookUrl     String?  @map("tgWebhookUrl")
+  tgAllowGroups    Boolean  @default(false) @map("tgAllowGroups")
+  tgAllowedGroups  String[] @default([]) @map("tgAllowedGroups")
 
-  // Настройки Alice
-  aliceSkillId     String?
-  aliceOauthToken  String?  @db.Text
+  aliceSkillId     String?  @map("aliceSkillId")
+  aliceOauthToken  String?  @db.Text @map("aliceOauthToken")
 
-  // Интеграции
-  webhookUrl       String?
-  webhookSecret    String?
+  webhookUrl       String?  @map("webhookUrl")
+  webhookSecret    String?  @map("webhookSecret")
 
   messages         Message[]
   logs             BotLog[]
@@ -44,18 +42,18 @@ model Bot {
 }
 
 model Message {
-  id            String    @id @default(uuid())
-  botId         String
-  chatId        String
-  userId        String
+  id            String    @id
+  botId         String    @map("botId")
+  chatId        String    @map("chatId")
+  userId        String    @map("userId")
   username      String?
-  firstName     String?
+  firstName     String?   @map("firstName")
   direction     Direction
   text          String?   @db.Text
-  photoFileId   String?
-  documentFileId String?
-  messageId     Int?      // Telegram message ID
-  replyToMsgId  Int?
+  photoFileId   String?   @map("photoFileId")
+  documentFileId String?  @map("documentFileId")
+  messageId     Int?      @map("messageId")
+  replyToMsgId  Int?      @map("replyToMsgId")
   timestamp     DateTime  @default(now())
 
   bot           Bot       @relation(fields: [botId], references: [id])
@@ -66,17 +64,17 @@ model Message {
 }
 
 model BotChat {
-  id          String   @id @default(uuid())
-  botId       String
-  chatId      String   // Telegram chat ID (negative for groups)
+  id          String   @id
+  botId       String   @map("botId")
+  chatId      String   @map("chatId")
   title       String?
-  type        String   // private, group, supergroup, channel
+  type        String
   username    String?
-  firstName   String?
-  lastName    String?
-  memberCount Int?
-  firstSeen   DateTime @default(now())
-  lastSeen    DateTime @default(now())
+  firstName   String?  @map("firstName")
+  lastName    String?  @map("lastName")
+  memberCount Int?     @map("memberCount")
+  firstSeen   DateTime @default(now()) @map("firstSeen")
+  lastSeen    DateTime @default(now()) @map("lastSeen")
 
   bot         Bot      @relation(fields: [botId], references: [id], onDelete: Cascade)
 
@@ -86,12 +84,12 @@ model BotChat {
 }
 
 model HealthCheck {
-  id        String   @id @default(uuid())
-  botId     String
+  id        String   @id
+  botId     String   @map("botId")
   healthy   Boolean
-  status    String   // online, error
+  status    String
   error     String?  @db.Text
-  checkedAt DateTime @default(now())
+  checkedAt DateTime @default(now()) @map("checkedAt")
 
   bot       Bot      @relation(fields: [botId], references: [id], onDelete: Cascade)
 
@@ -100,8 +98,8 @@ model HealthCheck {
 }
 
 model BotLog {
-  id        String   @id @default(uuid())
-  botId     String?  // Nullable для системных логов
+  id        String   @id
+  botId     String?  @map("botId")
   level     LogLevel
   message   String   @db.Text
   context   Json?
@@ -114,12 +112,12 @@ model BotLog {
 }
 
 model ApiKey {
-  id          String   @id @default(uuid())
+  id          String   @id
   name        String
   keyHash     String   @unique
   permissions String[] @default([])
-  createdAt   DateTime @default(now())
-  lastUsedAt  DateTime?
+  createdAt   DateTime @default(now()) @map("createdAt")
+  lastUsedAt  DateTime? @map("lastUsedAt")
 
   @@map("api_keys")
 }
