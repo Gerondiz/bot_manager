@@ -19,8 +19,8 @@ export function errorLogger() {
     logQueue.push(
       pool
         .query(
-          `INSERT INTO bot_logs ("botId", level, message, context, timestamp)
-           VALUES ($1, $2, $3, $4, $5)`,
+          `INSERT INTO bot_logs (id, "botId", level, message, context, timestamp)
+           VALUES (gen_random_uuid()::text, $1, $2, $3, $4, $5)`,
           [
             null, // Системная ошибка
             'ERROR',
