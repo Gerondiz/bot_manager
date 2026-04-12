@@ -188,7 +188,7 @@ export default function ChatsTab({ botId }: { botId: string }) {
               <div
                 key={chat.chatId}
                 className="px-4 py-3 flex items-center gap-3 hover:bg-blue-50/50 transition-colors cursor-pointer"
-                onClick={() => router.push(`/bots/${botId}?tab=messages&chat=${chat.chatId}`)}
+                onClick={() => router.replace(`/bots/${botId}?tab=messages&chat=${chat.chatId}`)}
               >
                 {/* Type icon */}
                 <span className="text-lg w-8 text-center">{typeIcons[chat.type] || '💬'}</span>

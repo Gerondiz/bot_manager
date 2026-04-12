@@ -31,12 +31,18 @@ export default function MessagesTab({ botId }: { botId: string }) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [chats, setChats] = useState<BotChat[]>([])
-  const [selectedChatId, setSelectedChatId] = useState(searchParams.get('chat') || '')
+  const [selectedChatId, setSelectedChatId] = useState('')
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [total, setTotal] = useState(0)
   const [directionFilter, setDirectionFilter] = useState('')
+
+  // Sync selectedChatId with URL on mount and URL changes
+  useEffect(() => {
+    const chatFromUrl = searchParams.get('chat') || ''
+    setSelectedChatId(prev => chatFromUrl || prev)
+  }, [searchParams])
 
   const fetchMessages = async () => {
     if (!selectedChatId) return
@@ -66,15 +72,9 @@ export default function MessagesTab({ botId }: { botId: string }) {
   }
 
   useEffect(() => { fetchChats() }, [botId])
-  useEffect(() => { fetchMessages() }, [botId, selectedChatId, directionFilter])
-  
-  // Sync selectedChatId with URL when it changes
   useEffect(() => {
-    const chatFromUrl = searchParams.get('chat')
-    if (chatFromUrl && chatFromUrl !== selectedChatId) {
-      setSelectedChatId(chatFromUrl)
-    }
-  }, [searchParams])
+    if (selectedChatId) fetchMessages()
+  }, [botId, selectedChatId, directionFilter])
   
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })

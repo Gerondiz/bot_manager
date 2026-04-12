@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getBotToken } from '@/lib/bots'
 import { getUpdates } from '@/lib/telegram'
 import { upsertBotChat, saveIncomingMessage } from '@/lib/bots'
+import { pool } from '@/lib/db'
 
 // POST /api/bots/:id/poll — Подтянуть сообщения из Telegram через getUpdates
 export async function POST(
@@ -16,14 +17,19 @@ export async function POST(
     const body = await request.json()
     const limit = Math.min(body?.limit || 100, 100)
 
-    // Получаем offset из запроса или берём 0
-    const offset = body?.offset || 0
+    // Получаем lastUpdateId из БД (чтобы не дублировать)
+    const botResult = await pool.query(
+      `SELECT "lastUpdateId" FROM bots WHERE id = $1`,
+      [id]
+    )
+    const lastUpdateId = botResult.rows[0]?.lastUpdateId || 0
 
-    // Получаем обновления
+    // Получаем обновления начиная с lastUpdateId + 1
+    const offset = lastUpdateId + 1
     const updates = await getUpdates(token, { offset, limit })
 
     if (updates.length === 0) {
-      return NextResponse.json({ messages: 0, chats: 0, newOffset: offset })
+      return NextResponse.json({ messages: 0, chats: 0, newOffset: lastUpdateId })
     }
 
     let savedMessages = 0
@@ -89,13 +95,17 @@ export async function POST(
       }
     }
 
-    // Новый offset — следующий update_id
-    const newOffset = updates[updates.length - 1].update_id + 1
+    // Сохраняем последний update_id в БД
+    const newLastUpdateId = updates[updates.length - 1].update_id
+    await pool.query(
+      `UPDATE bots SET "lastUpdateId" = $1 WHERE id = $2`,
+      [newLastUpdateId, id]
+    )
 
     return NextResponse.json({
       messages: savedMessages,
       chats: savedChats,
-      newOffset,
+      newOffset: newLastUpdateId,
     })
   } catch (error) {
     console.error('Poll error:', error)

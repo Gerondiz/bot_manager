@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS "bots" (
     "aliceOauthToken" TEXT,
     "webhookUrl" TEXT,
     "webhookSecret" TEXT,
+    "lastUpdateId" INTEGER DEFAULT 0,
 
     CONSTRAINT "bots_pkey" PRIMARY KEY ("id")
 );

@@ -78,7 +78,9 @@ export default function BotPage({ params }: { params: Promise<{ id: string }> })
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId)
     params.then(({ id }) => {
-      router.push(`/bots/${id}?tab=${tabId}`, { scroll: false })
+      const chat = searchParams.get('chat')
+      const url = chat ? `/bots/${id}?tab=${tabId}&chat=${chat}` : `/bots/${id}?tab=${tabId}`
+      router.push(url, { scroll: false })
     })
   }
 
