@@ -92,6 +92,31 @@ export default function MessagesTab({ botId }: { botId: string }) {
     }
   }
 
+  const [polling, setPolling] = useState(false)
+  const [pollResult, setPollResult] = useState<{ messages: number } | null>(null)
+
+  const handlePoll = async () => {
+    setPolling(true)
+    setPollResult(null)
+    try {
+      const res = await fetch(`/api/bots/${botId}/poll`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ limit: 100 }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed')
+      setPollResult({ messages: data.messages })
+      // Refresh messages and chats
+      await fetchMessages()
+      fetchChats()
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to poll')
+    } finally {
+      setPolling(false)
+    }
+  }
+
   const selectedChat = chats.find(c => c.chatId === selectedChatId)
 
   if (!selectedChatId) {
@@ -109,7 +134,7 @@ export default function MessagesTab({ botId }: { botId: string }) {
   return (
     <div className="flex flex-col h-[600px]">
       {/* Chat selector + info */}
-      <div className="flex items-center gap-3 mb-3 px-1">
+      <div className="flex items-center gap-3 mb-3 px-1 flex-wrap">
         <select
           value={selectedChatId}
           onChange={(e) => setSelectedChatId(e.target.value)}
@@ -132,7 +157,44 @@ export default function MessagesTab({ botId }: { botId: string }) {
           <option value="OUTGOING">Исходящие</option>
         </select>
         <span className="text-xs text-gray-500">{total} сообщ.</span>
+        <button
+          onClick={fetchMessages}
+          disabled={loading}
+          className="btn btn-secondary text-xs disabled:opacity-50"
+          title="Обновить"
+        >
+          {loading ? (
+            <div className="animate-spin w-3.5 h-3.5 border-2 border-gray-600 border-t-transparent rounded-full" />
+          ) : (
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
+            </svg>
+          )}
+        </button>
+        <button
+          onClick={handlePoll}
+          disabled={polling}
+          className="btn btn-primary text-xs disabled:opacity-50"
+          title="Получить новые из Telegram"
+        >
+          {polling ? (
+            <div className="animate-spin w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full" />
+          ) : (
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+            </svg>
+          )}
+          {polling ? 'Загрузка...' : 'Обновить из ТГ'}
+        </button>
       </div>
+
+      {pollResult && (
+        <div className="px-1 mb-2">
+          <div className="p-2 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+            ✅ Получено: <strong>{pollResult.messages}</strong> новых сообщений
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 bg-gray-50 rounded-lg border border-gray-200 overflow-y-auto p-4 space-y-2">
