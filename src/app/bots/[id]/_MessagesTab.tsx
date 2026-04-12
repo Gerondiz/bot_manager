@@ -67,6 +67,15 @@ export default function MessagesTab({ botId }: { botId: string }) {
 
   useEffect(() => { fetchChats() }, [botId])
   useEffect(() => { fetchMessages() }, [botId, selectedChatId, directionFilter])
+  
+  // Sync selectedChatId with URL when it changes
+  useEffect(() => {
+    const chatFromUrl = searchParams.get('chat')
+    if (chatFromUrl && chatFromUrl !== selectedChatId) {
+      setSelectedChatId(chatFromUrl)
+    }
+  }, [searchParams])
+  
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
@@ -216,12 +225,13 @@ export default function MessagesTab({ botId }: { botId: string }) {
                   : 'bg-white border border-gray-200 text-gray-900 rounded-bl-sm'
               }`}>
                 {msg.text && <div className="break-words">{msg.text}</div>}
-                {msg.photoFileId && <div className="text-xs opacity-75">📷 Фото</div>}
-                {msg.documentFileId && <div className="text-xs opacity-75">📎 Документ</div>}
+                {!msg.text && msg.photoFileId && <div className="text-xs opacity-75">📷 Фото</div>}
+                {!msg.text && msg.documentFileId && <div className="text-xs opacity-75">📎 Документ</div>}
+                {!msg.text && !msg.photoFileId && !msg.documentFileId && <div className="text-xs opacity-50 italic">[сообщение]</div>}
                 <div className={`text-[10px] mt-1 text-right ${
                   msg.direction === 'OUTGOING' ? 'text-blue-200' : 'text-gray-400'
                 }`}>
-                  {new Date(msg.timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+                  {new Date(msg.timestamp).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                 </div>
               </div>
             </div>

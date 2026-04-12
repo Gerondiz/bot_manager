@@ -66,12 +66,14 @@ export async function saveIncomingMessage(
     documentFileId?: string
     messageId?: number
     replyToMsgId?: number
+    date?: number  // Unix timestamp from Telegram
   }
 ) {
+  const ts = msg.date || Math.floor(Date.now() / 1000)
   return pool.query(
     `INSERT INTO messages (id, "botId", "chatId", "userId", username, "firstName", direction, text, "photoFileId", "documentFileId", "messageId", "replyToMsgId", timestamp)
      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, 'INCOMING', $6, $7, $8, $9, $10, to_timestamp($11))`,
-    [botId, msg.chatId, msg.userId, msg.username, msg.firstName, msg.text, msg.photoFileId, msg.documentFileId, msg.messageId, msg.replyToMsgId, Math.floor(Date.now() / 1000)]
+    [botId, msg.chatId, msg.userId, msg.username, msg.firstName, msg.text, msg.photoFileId, msg.documentFileId, msg.messageId, msg.replyToMsgId, ts]
   )
 }
 

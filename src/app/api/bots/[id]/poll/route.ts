@@ -67,6 +67,7 @@ export async function POST(
           documentFileId,
           messageId: msg.message_id,
           replyToMsgId: msg.reply_to_message?.message_id,
+          date: msg.date,  // Use actual Telegram message timestamp
         })
         savedMessages++
       }
